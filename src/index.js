@@ -1,6 +1,6 @@
 import './pages/index.css';
 import { initialCards } from './cards.js';
-import { createCard } from './components/card.js';
+import { createCard, deleteCard, likeCard } from './components/card.js';
 import { closePopup, openPopup } from './components/modal.js';
 
 
@@ -24,13 +24,16 @@ const formNewCard = document.forms['new-place'];
 const placeInput = formNewCard['place-name'];
 const linkInput = formNewCard['link'];
 
+
 const popupImage = document.querySelector('.popup_type_image');
+const popupImageData = popupImage.querySelector('.popup__image');
+const popupImageCaption = popupImage.querySelector('.popup__caption');
 const closePopupImage = popupImage.querySelector('.popup__close');
 
 
 // @todo: Вывести карточки на страницу
 initialCards.forEach(function(card) {
-  cardContainer.append(createCard(card));
+  cardContainer.append(createCard(card, { deleteCard, likeCard, handleImageClick }));
 });
 
 //открыть попап Edit и заполнить инпуты
@@ -83,18 +86,30 @@ popupNewCard.addEventListener ('click', function(evt) {
   
 //обработчик события формы newCard
 function handleFormNewCardSubmit(evt) {
-    evt.preventDefault();
-    const newCard = {
-      name: placeInput.value,
-      link: linkInput.value
-    };
-    cardContainer.prepend(createCard(newCard));
-    formNewCard.reset();
-    closePopup(popupNewCard);
+  evt.preventDefault();
+  const newCard = {
+    name: placeInput.value,
+    link: linkInput.value
+  };
+  cardContainer.prepend(createCard(newCard));
+  formNewCard.reset();
+  closePopup(popupNewCard);
 }
   
 //слушатель на submit формы newCard
 formNewCard.addEventListener('submit', handleFormNewCardSubmit);
+
+//увеличить картинку
+function handleImageClick(cardData) {
+  setImageData(cardData);
+  openPopup(popupImage)
+}
+
+function setImageData(cardData) {
+  popupImageData.src = cardData.link;
+  popupImageData.alt = cardData.name;
+  popupImageCaption.textContent = cardData.name;
+}
 
 //закрыть попап Image
 closePopupImage.addEventListener('click', function() {
