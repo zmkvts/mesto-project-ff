@@ -1,7 +1,9 @@
 import { closePopup, openPopup } from "./modal";
 import { deleteOwnerCard, likeCard, unLikeCard } from "../api";
+import { onDelete } from "../index.js";
 
 const popupConfirmDelete = document.querySelector('.popup_type_confirm_delete');
+const formDeleteCard = document.forms['delete-card'];
 
 export function createCard(cardData, {deleteCard, clickLike, handleImageClick }, userId) {
   // @todo: Темплейт карточки
@@ -26,15 +28,19 @@ export function createCard(cardData, {deleteCard, clickLike, handleImageClick },
   }
     else {  
         deleteButton.addEventListener('click', function() {
-          if (!deleteButton.disabled) {
             openPopup(popupConfirmDelete);
-          }
+            onDelete(cardData._id, cardItem);
         })
     }
 
   if (cardData.likes.some((user) => user._id === userId)) {
     likeButton.classList.add('card__like-button_is-active');
   }
+
+//   formDeleteCard.addEventListener('submit', function(evt) {
+//   evt.preventDefault();
+//   deleteCard(cardData._id, cardItem)
+// });
 
 
 

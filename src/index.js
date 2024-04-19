@@ -37,6 +37,7 @@ const formEditAvatar = document.forms['edit-avatar'];
 const avatarInput = formEditAvatar['avatar'];
 
 const popupConfirmDelete = document.querySelector('.popup_type_confirm-delete');
+const formDeleteCard = document.forms['delete-card'];
 
 const popups = document.querySelectorAll('.popup');
 const closePopupButtons = document.querySelectorAll('.popup__close');
@@ -137,7 +138,17 @@ function addNewCard(evt) {
 //слушатель на submit формы newCard
 formNewCard.addEventListener('submit', addNewCard);
 
+let cardData = {};
 
+export const onDelete = (cardId, cardItem) => {
+  cardData._id = cardId;
+  cardData.cardItem = cardItem;
+}
+
+formDeleteCard.addEventListener('submit', function(evt) {
+  evt.preventDefault();
+  deleteCard(cardData._id, cardData.cardItem)
+});
 
 //открыть попап avatar
 editAvatarButton.addEventListener('click', function() {
