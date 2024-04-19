@@ -47,7 +47,7 @@ function showInputError(formElement, inputElement, errorMessage, {inputErrorClas
       evt.preventDefault();
     });
   
-      setEventListeners(formElement, {inputSelector, submitButtonSelector});
+      setEventListeners(formElement, {inputSelector, submitButtonSelector, inactiveButtonClass, inputErrorClass, errorClass});
   });
   }
   
@@ -58,10 +58,10 @@ function showInputError(formElement, inputElement, errorMessage, {inputErrorClas
   }
   
   const toggleButtonState = (inputList, buttonElement, {inactiveButtonClass}) => {
-    if (buttonElement)
-{    if (hasInvalidInput(inputList)) {
-      buttonElement.disabled = true;
-      buttonElement.classList.add(inactiveButtonClass);
+    if (buttonElement) {    
+      if (hasInvalidInput(inputList)) {
+        buttonElement.disabled = true;
+        buttonElement.classList.add(inactiveButtonClass);
     } else {
         buttonElement.classList.remove(inactiveButtonClass);
       buttonElement.disabled = false;
@@ -74,5 +74,5 @@ function showInputError(formElement, inputElement, errorMessage, {inputErrorClas
     inputList.forEach((inputElement) => {
       hideInputError(profileForm, inputElement, validationConfig.inputErrorClass, validationConfig.errorClass);
     });
-    toggleButtonState(inputList, buttonElement, validationConfig.inputErrorClass, validationConfig.errorClass);
+    toggleButtonState(inputList, buttonElement, validationConfig.inactiveButtonClass);
   }

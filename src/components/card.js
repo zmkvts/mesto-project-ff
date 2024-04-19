@@ -1,6 +1,8 @@
 import { closePopup, openPopup } from "./modal";
 import { deleteOwnerCard, likeCard, unLikeCard } from "../api";
 
+const popupConfirmDelete = document.querySelector('.popup_type_confirm_delete');
+
 export function createCard(cardData, {deleteCard, clickLike, handleImageClick }, userId) {
   // @todo: Темплейт карточки
   const cardTemplate = document.querySelector('#card-template').content;
@@ -10,8 +12,6 @@ export function createCard(cardData, {deleteCard, clickLike, handleImageClick },
   const cardImage = cardItem.querySelector('.card__image');
   const deleteButton = cardItem.querySelector('.card__delete-button');
   const cardLikeCounter = cardItem.querySelector('.card__like-counter');
-  const popupConfirmDelete = document.querySelector('.popup_type_confirm_delete');
-  const formDeleteCard = document.forms['delete-card'];
 
   // @todo: DOM узлы
   cardTitle.textContent = cardData.name;
@@ -19,25 +19,23 @@ export function createCard(cardData, {deleteCard, clickLike, handleImageClick },
   cardImage.alt = cardData.name;
   cardLikeCounter.textContent = cardData.likes.length;
   
+
   if (cardData.owner._id !== userId) {
     deleteButton.disabled = true;
     deleteButton.classList.add('visually-hidden');
   }
-  
+    else {  
+        deleteButton.addEventListener('click', function() {
+          if (!deleteButton.disabled) {
+            openPopup(popupConfirmDelete);
+          }
+        })
+    }
+
   if (cardData.likes.some((user) => user._id === userId)) {
     likeButton.classList.add('card__like-button_is-active');
   }
-  
-    
-  deleteButton.addEventListener('click', function() {
-    if (!deleteButton.disabled) {
-      openPopup(popupConfirmDelete);
-      formDeleteCard.addEventListener('submit', function(evt) {
-        evt.preventDefault();
-        deleteCard(cardData._id, cardItem)
-      });
-    }
-  });
+
 
 
   likeButton.addEventListener('click', (evt) => {
@@ -70,7 +68,6 @@ export function createCard(cardData, {deleteCard, clickLike, handleImageClick },
   
 // @todo: Функция удаления карточки
 export function deleteCard(cardId, cardItem) {
-const popupConfirmDelete = document.querySelector('.popup_type_confirm_delete');
   deleteOwnerCard(cardId)
     .then(() => {
         cardItem.remove();

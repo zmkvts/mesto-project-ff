@@ -50,18 +50,6 @@ const validationConfig = {
   errorClass: 'popup__error_visible'
 };
 
-
-// @todo: Вывести информацию о пользователе
-getUserInfo()
-  .then((user) => {
-    profileTitle.textContent = user.name;
-    profileDescr.textContent = user.about;
-    profileImage.style = `background-image: url('${user.avatar}')`;
-  })
-  .catch((err) => {
-    console.log(err);
-  });
-
 // @todo: Вывести карточки на страницу
 // initialCards.forEach(function(card) {
 //   cardContainer.append(createCard(card, { deleteCard, clickLike, handleImageClick }));
@@ -70,6 +58,11 @@ getUserInfo()
 Promise.all([getUserInfo(), getInitialCards()])
   .then(([userData, cards]) => {
     const userId = userData._id;
+
+    profileTitle.textContent = userData.name;
+    profileDescr.textContent = userData.about;
+    profileImage.style = `background-image: url('${userData.avatar}')`;
+
     cards.forEach((card) => {
       cardContainer.append(createCard(card, { deleteCard, clickLike, handleImageClick }, userId));
     });
@@ -97,13 +90,13 @@ function handleFormEditSubmit(evt) {
     .then((userData) => {
       profileTitle.textContent = userData.name;
       profileDescr.textContent = userData.about;
+      closePopup(popupEdit);
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
       renderLoading(false);
-      closePopup(popupEdit);
     });
 }
 
@@ -131,18 +124,20 @@ function addNewCard(evt) {
       cardContainer.prepend(createCard(cardData, { deleteCard, clickLike, handleImageClick }, cardData.owner._id));
       clearValidation(popupNewCard, validationConfig);
       formNewCard.reset();
+      closePopup(popupNewCard);
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
       renderLoading(false);
-      closePopup(popupNewCard);
     });
 }
 
 //слушатель на submit формы newCard
 formNewCard.addEventListener('submit', addNewCard);
+
+
 
 //открыть попап avatar
 editAvatarButton.addEventListener('click', function() {
@@ -157,13 +152,16 @@ formEditAvatar.addEventListener('submit', function(evt) {
   updateAvatar(avatarInput.value)
     .then((userData) => {
       profileImage.style = `background-image: url('${userData.avatar}')`;
+      closePopup(popupAvatar);
+    })
+    .catch((err) => {
+      console.log(err);
     })
     .finally(() => {
       renderLoading(false);
-      closePopup(popupAvatar);
     })
-});
-
+  });
+  
 //увеличить картинку
 function handleImageClick(cardData) {
   setImageData(cardData);
