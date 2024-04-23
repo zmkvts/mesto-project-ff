@@ -2,8 +2,9 @@ import './pages/index.css';
 // import { initialCards } from './cards.js';
 import { createCard, deleteCard, clickLike } from './components/card.js';
 import { closePopup, openPopup } from './components/modal.js';
-import { enableValidation, clearValidation } from './validation';
-import { getUserInfo, getInitialCards, patchUserInfo, addCard, likeCard, unLikeCard, updateAvatar } from './api';
+import { enableValidation, clearValidation } from './scripts/validation';
+import { getUserInfo, getInitialCards, patchUserInfo, addCard, likeCard, unLikeCard, updateAvatar } from './scripts/api';
+import { validationConfig, renderLoading } from './utils/utils';
 
 
 const cardContainer = document.querySelector('.places__list');
@@ -42,15 +43,6 @@ const formDeleteCard = document.forms['delete-card'];
 const popups = document.querySelectorAll('.popup');
 const closePopupButtons = document.querySelectorAll('.popup__close');
 
-const validationConfig = {
-  formSelector: '.popup__form',
-  inputSelector: '.popup__input',
-  submitButtonSelector: '.popup__button',
-  inactiveButtonClass: 'popup__button_disabled',
-  inputErrorClass: 'popup__input_type_error',
-  errorClass: 'popup__error_visible'
-};
-
 // @todo: Вывести карточки на страницу
 // initialCards.forEach(function(card) {
 //   cardContainer.append(createCard(card, { deleteCard, clickLike, handleImageClick }));
@@ -65,7 +57,7 @@ Promise.all([getUserInfo(), getInitialCards()])
     profileImage.style = `background-image: url('${userData.avatar}')`;
 
     cards.forEach((card) => {
-      cardContainer.append(createCard(card, { deleteCard, clickLike, handleImageClick }, userId));
+      cardContainer.append(createCard(card, { onDelete, clickLike, handleImageClick }, userId));
     });
   })
   .catch((err) => {
@@ -75,6 +67,7 @@ Promise.all([getUserInfo(), getInitialCards()])
 //открыть попап Edit и заполнить инпуты
 editProfileButton.addEventListener('click', function() {
   openPopup(popupEdit);
+  clearValidation(popupEdit, validationConfig);
   nameInput.value = profileTitle.textContent;
   jobInput.value = profileDescr.textContent;
 });
@@ -82,7 +75,7 @@ editProfileButton.addEventListener('click', function() {
 //обработчик события формы Edit
 function handleFormEditSubmit(evt) {
   evt.preventDefault();
-  renderLoading(true);
+  renderLoading(true, evt.submitter, 'Сохранение...');
 
   patchUserInfo({
     name: nameInput.value,
@@ -97,7 +90,7 @@ function handleFormEditSubmit(evt) {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false);
+      renderLoading(false, evt.submitter, 'Сохранить');
     });
 }
 
@@ -107,23 +100,21 @@ formEditElement.addEventListener('submit', handleFormEditSubmit);
 //открыть попап newCard
 addCardButton.addEventListener('click', function() {
   openPopup(popupNewCard);
-  placeInput.value = '';
-  linkInput.value = '';
+  formNewCard.reset();
   clearValidation(popupNewCard, validationConfig);
 })
 
 //обработчик события формы newCard
 function addNewCard(evt) {
   evt.preventDefault();
-  renderLoading(true);
+  renderLoading(true, evt.submitter, 'Cохранение...');
 
   addCard({
     name: placeInput.value,
     link: linkInput.value
   })
     .then((cardData) => {
-      cardContainer.prepend(createCard(cardData, { deleteCard, clickLike, handleImageClick }, cardData.owner._id));
-      clearValidation(popupNewCard, validationConfig);
+      cardContainer.prepend(createCard(cardData, { onDelete, clickLike, handleImageClick }, cardData.owner._id));
       formNewCard.reset();
       closePopup(popupNewCard);
     })
@@ -131,7 +122,7 @@ function addNewCard(evt) {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false);
+      renderLoading(false, evt.submitter, 'Сохранить');
     });
 }
 
@@ -139,8 +130,11 @@ function addNewCard(evt) {
 formNewCard.addEventListener('submit', addNewCard);
 
 let cardData = {};
+//значение этой переменной перезаписывается, чтобы передать id карточки, 
+//которую нужно удалить, если объявить ее через const то удаление ломается
+// такой подход к реализации функции удаления мы обсуждали на QnA с наставником и в чате пачки
 
-export const onDelete = (cardId, cardItem) => {
+const onDelete = (cardId, cardItem) => {
   cardData._id = cardId;
   cardData.cardItem = cardItem;
 }
@@ -148,18 +142,19 @@ export const onDelete = (cardId, cardItem) => {
 formDeleteCard.addEventListener('submit', function(evt) {
   evt.preventDefault();
   deleteCard(cardData._id, cardData.cardItem)
+  cardData = {};
 });
 
 //открыть попап avatar
 editAvatarButton.addEventListener('click', function() {
   openPopup(popupAvatar);
-  avatarInput.value = '';
+  formEditAvatar.reset();
   clearValidation(popupAvatar, validationConfig);
 });
 
 formEditAvatar.addEventListener('submit', function(evt) {
   evt.preventDefault();
-  renderLoading(true);
+  renderLoading(true, evt.submitter, 'Cохранение...');
   updateAvatar(avatarInput.value)
     .then((userData) => {
       profileImage.style = `background-image: url('${userData.avatar}')`;
@@ -169,7 +164,7 @@ formEditAvatar.addEventListener('submit', function(evt) {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false);
+      renderLoading(false, evt.submitter, 'Сохранить');
     })
   });
   
@@ -190,32 +185,14 @@ function setImageData(cardData) {
 
 popups.forEach((popup) => {
   popup.addEventListener('mousedown', (evt) => {
-    if (evt.target.classList.contains('popup_opened')) {
-      closePopup(popup)
-      clearValidation(popup, validationConfig)
-    }
     if (evt.target.classList.contains('popup__close')) {
       closePopup(popup)
-      clearValidation(popup, validationConfig)
     }
     if (evt.target === evt.currentTarget) {
       closePopup(popup);
-      clearValidation(popup, validationConfig)
     }
   })
 })
-
-function renderLoading(isLoading) {
-  const activePopup = document.querySelector('.popup_is-opened');
-  if (activePopup) {
-    const activeButton = activePopup.querySelector('.popup__button');
-    if (isLoading) {
-      activeButton.textContent = 'Сохранение...';
-    } else {
-      activeButton.textContent = 'Сохранить';
-    }
-  }
-}
 
 
 enableValidation(validationConfig);
