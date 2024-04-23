@@ -4,7 +4,7 @@ import { deleteOwnerCard, likeCard, unLikeCard } from "../scripts/api";
 const popupConfirmDelete = document.querySelector('.popup_type_confirm_delete');
 const formDeleteCard = document.forms['delete-card'];
 
-export function createCard(cardData, {onDelete, clickLike, handleImageClick }, userId) {
+export function createCard(cardData, { handleDeleteButton, clickLike, handleImageClick }, userId) {
   // @todo: Темплейт карточки
   const cardTemplate = document.querySelector('#card-template').content;
   const cardItem = cardTemplate.querySelector('.card').cloneNode(true);
@@ -27,8 +27,7 @@ export function createCard(cardData, {onDelete, clickLike, handleImageClick }, u
   }
     else {  
         deleteButton.addEventListener('click', function() {
-            openPopup(popupConfirmDelete);
-            onDelete(cardData._id, cardItem);
+            handleDeleteButton(cardData._id, cardItem);
         })
     }
 

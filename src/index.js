@@ -37,7 +37,7 @@ const editAvatarButton = document.querySelector('.profile__avatar-button');
 const formEditAvatar = document.forms['edit-avatar'];
 const avatarInput = formEditAvatar['avatar'];
 
-const popupConfirmDelete = document.querySelector('.popup_type_confirm-delete');
+const popupConfirmDelete = document.querySelector('.popup_type_confirm_delete');
 const formDeleteCard = document.forms['delete-card'];
 
 const popups = document.querySelectorAll('.popup');
@@ -57,7 +57,7 @@ Promise.all([getUserInfo(), getInitialCards()])
     profileImage.style = `background-image: url('${userData.avatar}')`;
 
     cards.forEach((card) => {
-      cardContainer.append(createCard(card, { onDelete, clickLike, handleImageClick }, userId));
+      cardContainer.append(createCard(card, { handleDeleteButton: handleDeleteButton, clickLike, handleImageClick }, userId));
     });
   })
   .catch((err) => {
@@ -75,7 +75,7 @@ editProfileButton.addEventListener('click', function() {
 //обработчик события формы Edit
 function handleFormEditSubmit(evt) {
   evt.preventDefault();
-  renderLoading(true, evt.submitter, 'Сохранение...');
+  renderLoading(true, evt.submitter);
 
   patchUserInfo({
     name: nameInput.value,
@@ -90,7 +90,7 @@ function handleFormEditSubmit(evt) {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false, evt.submitter, 'Сохранить');
+      renderLoading(false, evt.submitter);
     });
 }
 
@@ -107,14 +107,14 @@ addCardButton.addEventListener('click', function() {
 //обработчик события формы newCard
 function addNewCard(evt) {
   evt.preventDefault();
-  renderLoading(true, evt.submitter, 'Cохранение...');
+  renderLoading(true, evt.submitter);
 
   addCard({
     name: placeInput.value,
     link: linkInput.value
   })
     .then((cardData) => {
-      cardContainer.prepend(createCard(cardData, { onDelete, clickLike, handleImageClick }, cardData.owner._id));
+      cardContainer.prepend(createCard(cardData, { handleDeleteButton: handleDeleteButton, clickLike, handleImageClick }, cardData.owner._id));
       formNewCard.reset();
       closePopup(popupNewCard);
     })
@@ -122,19 +122,17 @@ function addNewCard(evt) {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false, evt.submitter, 'Сохранить');
+      renderLoading(false, evt.submitter);
     });
 }
 
 //слушатель на submit формы newCard
 formNewCard.addEventListener('submit', addNewCard);
 
-let cardData = {};
-//значение этой переменной перезаписывается, чтобы передать id карточки, 
-//которую нужно удалить, если объявить ее через const то удаление ломается
-// такой подход к реализации функции удаления мы обсуждали на QnA с наставником и в чате пачки
+const cardData = {};
 
-const onDelete = (cardId, cardItem) => {
+const handleDeleteButton = (cardId, cardItem) => {
+  openPopup(popupConfirmDelete);
   cardData._id = cardId;
   cardData.cardItem = cardItem;
 }
@@ -142,7 +140,6 @@ const onDelete = (cardId, cardItem) => {
 formDeleteCard.addEventListener('submit', function(evt) {
   evt.preventDefault();
   deleteCard(cardData._id, cardData.cardItem)
-  cardData = {};
 });
 
 //открыть попап avatar
@@ -154,7 +151,7 @@ editAvatarButton.addEventListener('click', function() {
 
 formEditAvatar.addEventListener('submit', function(evt) {
   evt.preventDefault();
-  renderLoading(true, evt.submitter, 'Cохранение...');
+  renderLoading(true, evt.submitter);
   updateAvatar(avatarInput.value)
     .then((userData) => {
       profileImage.style = `background-image: url('${userData.avatar}')`;
@@ -164,7 +161,7 @@ formEditAvatar.addEventListener('submit', function(evt) {
       console.log(err);
     })
     .finally(() => {
-      renderLoading(false, evt.submitter, 'Сохранить');
+      renderLoading(false, evt.submitter);
     })
   });
   

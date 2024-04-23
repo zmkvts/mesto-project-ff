@@ -74,5 +74,5 @@ function showInputError(formElement, inputElement, errorMessage, {inputErrorClas
     inputList.forEach((inputElement) => {
       hideInputError(profileForm, inputElement, validationConfig.inputErrorClass, validationConfig.errorClass);
     });
-    toggleButtonState(inputList, buttonElement, validationConfig.inactiveButtonClass);
+    toggleButtonState(inputList, buttonElement, validationConfig);
   }
